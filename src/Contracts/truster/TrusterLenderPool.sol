@@ -23,13 +23,13 @@ contract TrusterLenderPool is ReentrancyGuard {
 
     function flashLoan(uint256 borrowAmount, address borrower, address target, bytes calldata data)
         external
-        nonReentrant
+        nonReentrant // @note is it really safe?
     {
         uint256 balanceBefore = damnValuableToken.balanceOf(address(this));
         if (balanceBefore < borrowAmount) revert NotEnoughTokensInPool();
 
         damnValuableToken.transfer(borrower, borrowAmount);
-        target.functionCall(data);
+        target.functionCall(data); //  @note anything wrong with doing this?
 
         uint256 balanceAfter = damnValuableToken.balanceOf(address(this));
         if (balanceAfter < balanceBefore) revert FlashLoanHasNotBeenPaidBack();

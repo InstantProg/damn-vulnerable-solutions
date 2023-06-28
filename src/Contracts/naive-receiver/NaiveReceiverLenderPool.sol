@@ -27,7 +27,7 @@ contract NaiveReceiverLenderPool is ReentrancyGuard {
         if (!borrower.isContract()) revert BorrowerMustBeADeployedContract();
 
         // Transfer ETH and handle control to receiver
-        borrower.functionCallWithValue(abi.encodeWithSignature("receiveEther(uint256)", FIXED_FEE), borrowAmount);
+        borrower.functionCallWithValue(abi.encodeWithSignature("receiveEther(uint256)", FIXED_FEE), borrowAmount);// @note can't I just call this function on the behalf of the receiver ocntract, thus by making 10 transactions draining his balance>
 
         if (address(this).balance < balanceBefore + FIXED_FEE) {
             revert FlashLoanHasNotBeenPaidBack();

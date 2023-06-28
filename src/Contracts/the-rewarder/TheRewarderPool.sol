@@ -53,7 +53,7 @@ contract TheRewarderPool {
         distributeRewards();
 
         if (!liquidityToken.transferFrom(msg.sender, address(this), amountToDeposit)) revert TransferFail();
-    }
+    } 
 
     function withdraw(uint256 amountToWithdraw) external {
         accToken.burn(msg.sender, amountToWithdraw);

