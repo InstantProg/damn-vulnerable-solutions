@@ -6,6 +6,7 @@ import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.s
 
 import {TrustfulOracle} from "./TrustfulOracle.sol";
 import {DamnValuableNFT} from "../DamnValuableNFT.sol";
+import "forge-std/console.sol";
 
 /**
  * @title Exchange
@@ -49,6 +50,10 @@ contract Exchange is ReentrancyGuard {
     }
 
     function sellOne(uint256 tokenId) external nonReentrant {
+        console.log(unicode"The SellOne function is called");
+        console.log(unicode"The owner of the token is %s", token.ownerOf(tokenId));
+        console.log(unicode"The sender is %s", msg.sender);
+
         if (msg.sender != token.ownerOf(tokenId)) revert SellerMustBeTheOwner();
         if (token.getApproved(tokenId) != address(this)) {
             revert SellerMustHaveApprovedTransfer();

