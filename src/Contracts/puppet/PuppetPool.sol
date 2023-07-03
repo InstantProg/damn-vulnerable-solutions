@@ -5,10 +5,7 @@ import {ReentrancyGuard} from "openzeppelin-contracts/security/ReentrancyGuard.s
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
 import {DamnValuableToken} from "../DamnValuableToken.sol";
 
-/**
- * @title PuppetPool
- * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
- */
+
 contract PuppetPool is ReentrancyGuard {
     using Address for address payable;
 
@@ -30,7 +27,7 @@ contract PuppetPool is ReentrancyGuard {
     function borrow(uint256 borrowAmount) public payable nonReentrant {
         uint256 depositRequired = calculateDepositRequired(borrowAmount);
 
-        if (msg.value < depositRequired) revert NotDepositingEnoughCollateral();
+        if (msg.value < depositRequired) revert NotDepositingEnoughCollateral(); 
 
         if (msg.value > depositRequired) {
             payable(msg.sender).sendValue(msg.value - depositRequired);
@@ -46,13 +43,15 @@ contract PuppetPool is ReentrancyGuard {
 
     function calculateDepositRequired(uint256 amount) public view returns (uint256) {
         return (amount * _computeOraclePrice() * 2) / 10 ** 18;
-    }
+    }   ///                 returns or 10 ** -2
 
     function _computeOraclePrice() private view returns (uint256) {
         // calculates the price of the token in wei according to Uniswap pair
-        return (uniswapPair.balance * (10 ** 18)) / token.balanceOf(uniswapPair);
-    }
-
+        return (uniswapPair.balance * (10 ** 18)) / token.balanceOf(uniswapPair);///@audit oracle manipulation might occure
+    }   //             \ is it ^^ return in 10**18 already?
+                        //@audit why is there this 10**18 normalization?
+                        //@audit how to solve it?
+                        
     /**
      * ... functions to deposit, redeem, repay, calculate interest, and so on ...
      */
